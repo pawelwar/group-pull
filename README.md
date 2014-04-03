@@ -30,8 +30,11 @@ tree .
 └── priv.project-x
 ```
 
-###### Invoke script:
+###### Run script:
+
+```bash
 gpull test
+```
 
 ###### Result
 

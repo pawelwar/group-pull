@@ -1,0 +1,28 @@
+#!/bin/bash
+
+FIND="find . -maxdepth 1 -mindepth 1 -type d " 
+for var in "$@"
+do
+	FIND="$FIND | grep \"$var\""
+done
+eval DIRS=\`${FIND}\`
+for dir in $DIRS
+do
+	cd $dir
+	if [ -d ".git" ]; then
+		echo -e "* Update ${dir:2} \c"
+		ERROR=$(git fetch -q 2>&1 > /dev/null) 
+		if [ ! -z "$ERROR" ]; then
+			echo -e "\033[1;31;m$ERROR\033[0m"
+		        continue
+		fi;
+		ERROR=$(git merge -q --ff-only @{u} 2>&1 >/dev/null)
+		if [ -z "$ERROR" ]; then
+			echo -e "\033[1;32;mDONE\033[0m"			
+		else 
+			echo -e "\033[1;31;m$ERROR\033[0m"
+		fi;
+	fi
+	cd ..
+done
+

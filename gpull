@@ -1,28 +1,35 @@
 #!/bin/bash
+current=`pwd`
 
-FIND="find . -maxdepth 1 -mindepth 1 -type d " 
-for var in "$@"
+for dir in ./*/
 do
-	FIND="$FIND | grep \"$var\""
+	match=true
+	# iterate over parameters and check if directory match them
+	for var in "$@"
+	do
+		if [[ ! $dir == *"$var"* ]]; then
+			match=false
+		fi
+	done
+	if [[ $match == true ]]; then
+		cd "$current/$dir"
+		# "Permission denied" error may occure
+		if [ $? -eq 0 ]; then		
+			# check if directory contains .git
+			if [ -d ".git" ]; then
+				echo -e "* Update ${dir:2} \c"
+				ERROR=$(git fetch -q 2>&1 > /dev/null) 
+				if [ ! -z "$ERROR" ]; then
+					echo -e "\033[1;31;m$ERROR\033[0m"
+				        continue
+				fi;
+				ERROR=$(git merge -q --ff-only @{u} 2>&1 >/dev/null)
+				if [ -z "$ERROR" ]; then
+					echo -e "\033[1;32;mDONE\033[0m"			
+				else 
+					echo -e "\033[1;31;m$ERROR\033[0m"
+				fi;
+			fi
+		fi		
+	fi	
 done
-eval DIRS=\`${FIND}\`
-for dir in $DIRS
-do
-	cd $dir
-	if [ -d ".git" ]; then
-		echo -e "* Update ${dir:2} \c"
-		ERROR=$(git fetch -q 2>&1 > /dev/null) 
-		if [ ! -z "$ERROR" ]; then
-			echo -e "\033[1;31;m$ERROR\033[0m"
-		        continue
-		fi;
-		ERROR=$(git merge -q --ff-only @{u} 2>&1 >/dev/null)
-		if [ -z "$ERROR" ]; then
-			echo -e "\033[1;32;mDONE\033[0m"			
-		else 
-			echo -e "\033[1;31;m$ERROR\033[0m"
-		fi;
-	fi
-	cd ..
-done
-

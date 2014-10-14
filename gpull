@@ -18,6 +18,10 @@ do
 			# check if directory contains .git
 			if [ -d ".git" ]; then
 				echo -e "* Update ${dir:2} \c"
+				if [ -f ".gpullignore" ]; then
+					echo -e "\033[1;33;mSKIPDED\033[0m"	
+					continue
+				fi
 				ERROR=$(git fetch -q 2>&1 > /dev/null) 
 				if [ ! -z "$ERROR" ]; then
 					echo -e "\033[1;31;m$ERROR\033[0m"
@@ -27,7 +31,7 @@ do
 				if [ -z "$ERROR" ]; then
 					echo -e "\033[1;32;mDONE\033[0m"			
 				else 
-					echo -e "\033[1;31;m$ERROR\033[0m"
+					echo -e "\033[1;31;m$CONFLICT\033[0m"
 				fi;
 			fi
 		fi		
